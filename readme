@@ -1,0 +1,3 @@
+MACHINE=rock-5bx bitbake rockx-image
+bitbake core-image-full-cmdline -c populate_sdk
+source oe-init-build-env

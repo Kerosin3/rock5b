@@ -1,0 +1,99 @@
+SUMMARY = "Stargazer development image"
+
+inherit core-image
+
+IMAGE_FEATURES += "ssh-server-dropbear tools-debug"
+
+CORE_IMAGE_EXTRA_INSTALL += "ethtool evtest fbset i2c-tools memtester"
+
+
+#IMAGE_FEATURES:remove = "debug-tweaks"
+#EXTRA_IMAGE_FEATURES = " debug-tweaks tools-debug empty-root-password allow-empty-password allow-root-login tools-profile serial-autologin-root "
+EXTRA_IMAGE_FEATURES = " debug-tweaks tools-debug empty-root-password allow-empty-password allow-root-login tools-profile"
+
+USER_CLASSES ?= "buildstats"
+PATCHRESOLVE = "noop"
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+
+CONF_VERSION = "2"
+MACHINE ??= "rock-5b"
+PACKAGE_CLASSES ?= "package_ipk"
+SANITY_TESTED_DISTROS:append ?= " *"
+PATCHRESOLVE = "noop"
+BB_DISKMON_DIRS ??= "\
+    STOPTASKS,${TMPDIR},1G,100K \
+    STOPTASKS,${DL_DIR},1G,100K \
+    STOPTASKS,${SSTATE_DIR},1G,100K \
+    STOPTASKS,/tmp,100M,100K \
+    HALT,${TMPDIR},100M,1K \
+    HALT,${DL_DIR},100M,1K \
+    HALT,${SSTATE_DIR},100M,1K \
+    HALT,/tmp,10M,1K"
+
+RM_OLD_IMAGE = "1"
+#INHERIT += "rm_work"
+# Enable systemd
+INIT_MANAGER = "systemd"
+
+DISTRO_FEATURES:append = " virtualization"
+IMAGE_INSTALL:append = " \
+    alsa-utils \
+    bluez5 \
+    e2fsprogs \
+    evtest \
+    canutils \
+    docker-compose \
+    gptfdisk \
+    i2c-tools \
+    iperf3 \
+    iw \
+    kernel-modules \
+    linux-firmware \
+    minicom \
+    packagegroup-core-full-cmdline \
+    packagegroup-core-boot \
+    ${CORE_IMAGE_EXTRA_INSTALL} \
+    parted \
+    pciutils \
+    ppp \
+    usbutils \
+    wpa-supplicant \
+    libgpiod \
+    libgpiod-dev \
+    libgpiod-tools \
+    sdbus-c++ \
+    sdbus-c++-tools \
+    someapp \
+    lighttpd \
+    python3-flask \
+    net-tools \
+    mingetty \
+"
+OE_TERMINAL = "xterm"
+
+SOURCES = "/opt/exp/radxa/SOURCES"
+DL_DIR ?= "${SOURCES}/downloads"
+SSTATE_DIR ?= "${SOURCES}/sstate-cache"
+TMPDIR = "${SOURCES}/tmp"
+#inherit extrausers
+#IMAGE_FEATURES:remove = "debug-tweaks"
+
+#PASSWD1 = "\$5\$e8q5Pkpokl3lTO2O\$/nNdgQD.GvzcRp/aEswJeoNnriwW9yoIwKRySZiIwE3"
+#PASSWD2 = "\$5\$Cj3yrQ3XNUBKp3dR\$GFhBHcGM9ynCEAc3nupGj1NJHLDrE.dZjcvEvDUagY8"
+#
+#EXTRA_USERS_PARAMS:append = "\
+#    useradd alex; \
+#    usermod -p '${PASSWD1}' alex; \
+#    usermod -ou 0  alex; \
+#    usermod -p '${PASSWD1}' root; \
+#    useradd -p '${PASSWD2}' test; \
+#    usermod -a -G sudo test; \
+#    "

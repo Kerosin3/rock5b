@@ -1,0 +1,12 @@
+[Unit]
+Description=main-service
+
+[Service]
+StandardOutput=null
+StandardError=journal
+Type=oneshot
+SyslogIdentifier=main-server-service
+ExecStart=/usr/bin/main-service --server
+
+[Install]
+WantedBy=multi-user.target

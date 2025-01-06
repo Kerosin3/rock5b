@@ -1,0 +1,193 @@
+OpenEmbedded BSP layer for Rockchip boards
+
+About:
+-----
+	The purpose of this layer is to provide OpenEmbedded BSP support for
+	Rockchip-based devices using upstream sources as much as possible.
+
+Dependencies:
+------------
+	URI: git://git.openembedded.org/openembedded-core
+	layers: meta
+	branch: matched branches (e.g. master, sumo, ...)
+
+	URI: git://git.yoctoproject.org/meta-arm
+	layers: meta-arm, meta-arm-toolchain
+	branch: matched branches (e.g. master, sumo, ...)
+
+Status of supported boards:
+--------------------------
+	builds and boots wic image:
+		32-bit:
+			firefly-rk3288
+			tinker-board
+			tinker-board-s
+			vyasa-rk3288
+
+		64-bit:
+			nanopi-m4
+			nanopi-m4-2gb
+			nanopi-m4b
+			nanopi-r2s
+			nanopi-r4s
+			orangepi-5-plus
+			radxa-zero-3e
+			radxa-zero-3w
+			roc-rk3308-cc
+			roc-rk3328-cc
+			rock-3a
+			rock-4c-plus
+			rock-5a
+			rock-5b
+			rock-pi-4a
+			rock-pi-4b
+			rock-pi-4c
+			rock-pi-e
+			rock-pi-s
+			rock64
+
+	builds:
+		32-bit:
+			marsboard-rk3066
+			radxarock
+			rock2-square
+
+Notes:
+-----
+  rk3308 rkbin:
+	The latest ddr initializer for the rk3308 platform does not output
+	diagnostic messages to uart0. This causes a bunch of gibberish to
+	be printed to the console window which only becomes legible once
+	the linux kernel starts. I.e. the console output of the ddr
+	initialization routine, as well as u-boot is lost. An older
+	version of this same binary blob does, however, support output to
+	uart0 (making its diagnostic messages as well as u-boot available
+	on the console). By default the build assumes the user would like
+	to see these message and be able to have the option to interact
+	with u-boot.
+
+	IOW: for rk3308-based devices, an older version of rkbin is used.
+
+	If, however, the user would prefer to use the latest binary ddr
+	initializer from rkbin, simply set:
+
+		RKBIN_RK3308_LATEST = "1"
+	
+	in the configuration (e.g. conf/local.conf).
+
+  wic compression:
+	For boards which build and boot wic images, the user can optionally specify
+	a compression using the WIC_COMPRESSION_EXTENSION variable. By default "wic"
+	images are built, but if the user would prefer, say "wic.xz" images, simply
+	specify:
+
+		WIC_COMPRESSION_EXTENSION = ".xz"
+
+	in the configuration (e.g. conf/local.conf).
+
+  A/B updates with RAUC
+	This layer now contains one example of building an A/B update using RAUC.
+	Users are free to use/test this example, to optionally enable it, to build
+	their own update strategies based on this one, or to ignore it completely.
+	This example only works with
+
+		INIT_MANAGER = "systemd"
+
+	If you wish to use this example in your builds:
+	- enable 'systemd' as your init system
+	- add the meta-rauc layer to your build (with the corresponding branch)
+	- add 'rauc' to your DISTRO_FEATURES
+	- enable RK_RAUC_DEMO in your config
+
+	If you wish to implement your own RAUC update without using the example from
+	this layer, perform the same steps as above except for the step enabling
+	RK_RAUC_DEMO.
+
+  HW video decoding with gstreamer
+
+	Most Rockchip SoCs have some integrated VPU, either Hantro, RKVDEC or
+	RKVDECv2. Those are called stateless VPUs and they require tools to be
+	adapted so they can be used. Upstream ffmpeg doesn't support them (yet)
+	but gstreamer does, via the v4l2sl* plugins. However, by default those
+	aren't built in OE-Core. This layer enables these plugins by default for
+	all SoCs that have at least one VPU (at the time of writing, all SoCs
+	supported by this layer to the exception of RK3308).
+
+	If you wish to NOT build those plugins anymore, you can set
+
+		ENABLE_STATELESS_VPU_GST = "0"
+
+	in any appropriate conf file (or in a
+	gstreamer1.0-plugins-bad_%.bbappend in your own layer).
+
+	Note that this is only relevant for upstream-based Linux kernels as
+	Rockchip have developed their own ABI for their own kernel that isn't
+	compatible (see Rockchip Media Process Platform (MPP) and
+	downstream gstreamer-rockchip plugin for those kernels).
+
+U-Boot Environment:
+------------------
+	In order to configure U-Boot to be able to store its environment into the
+	device from which it was booted, for any device supported in this BSP,
+	simply add the following to MACHINE_FEATURES:
+
+		rk-u-boot-env
+
+	If enabled, to additionally have the U-Boot environment generated and
+	stored in the image, also enable the following variable (default: off):
+
+		RK_IMAGE_INCLUDES_UBOOT_ENV
+
+	The script:
+
+		scripts/dump-uboot-env-from-yocto-image.sh
+
+	can be used on a rockchip wic image to see the contents of the U-Boot
+	environment partition at build time.
+
+Maintenance:
+-----------
+	Please send pull requests, patches, comments, or questions to the
+	yocto-patches mailing list (yocto-patches@lists.yoctoproject.org)
+	CCing the maintainer
+
+	When sending patches, please make sure the email subject line includes
+	"[meta-rockchip][PATCH]" and follow the community's patch submission
+	guidelines, as described in:
+		https://www.openembedded.org/wiki/Commit_Patch_Message_Guidelines
+		https://www.openembedded.org/wiki/How_to_submit_a_patch_to_OpenEmbedded
+
+	This can be configured within the repository with the following commands:
+
+		git config sendemail.to yocto-patches@lists.yoctoproject.org
+		git config sendemail.cc <your full email address>
+		git config format.subjectprefix "meta-rockchip] [PATCH"
+
+	Then, to send your most recent commit (i.e. just one patch),
+	please use something like:
+
+		git format-patch -M -1
+		git send-email <your patch file>
+
+Maintainer:
+----------
+	Trevor Woerner <twoerner@gmail.com>
+
+Brief History:
+-------------
+	2014 April
+		- originally started by Julien Chauveau
+		- Romain Perier joins
+	2014 Sep
+		- Julien leaves
+	2015 Aug
+		- Trevor Woerner joins
+	2017 Mar
+		- developers from Rockchip fork this layer see:
+			https://github.com/rockchip-linux/meta-rockchip.git
+			http://rockchip.wikidot.com/yocto-user-guide
+	2017 May
+		- Romain leaves
+	2018 Feb
+		- Rockchip developers abandon their fork for buildroot
+			http://opensource.rock-chips.com/wiki_Buildroot
