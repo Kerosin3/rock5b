@@ -1,11 +1,10 @@
-project('server', 'cpp',
+project('device-simulator', 'cpp', 
   meson_version: '>=0.58.0',
   default_options: [
-    'cpp_std=c++20',
-    'build.cpp_std=c++20',
+    'cpp_std=c++23',
+    'build.cpp_std=c++23',
     'warning_level=3',
     'b_ndebug=if-release',
-    'strip=true',
     'force_fallback_for=wlroots,libliftoff,vkroots',
   ],
   version : '1.0.0',
@@ -36,13 +35,22 @@ incdir = include_directories('main/include')
 sources = []
 # add sources from src dir
 subdir('main/src')
-#cpphttp_dep = dependency('cpp-httplib',required: true)
+# add boost
+boost_dep = dependency('boost',  required : true)
+sdbusplus_dep = dependency('sdbusplus', required : true)
 #############################################################
 executable(
   meson.project_name(),
   sources,
   include_directories : incdir,
-  dependencies : [],
+  dependencies : [boost_dep,sdbusplus_dep,
+  dependency(
+            'boost',
+            modules: ['coroutine', 'context'],
+            disabler: true,
+            required: false,
+            )
+  ],
   #native: true)
   )
 

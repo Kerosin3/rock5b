@@ -36,12 +36,13 @@ IMAGE_INSTALL:append = " \
     python3-flask \
     libgpiod \
     devmem2 \
+    libcereal \
     asio \
     fan-fix \
     nlohmann-json \
-    server \
     clientapp \
     server-dbus \
+    device-simulator \
 "
 
 inherit extrausers

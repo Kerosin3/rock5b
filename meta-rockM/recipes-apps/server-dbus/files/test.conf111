@@ -4,14 +4,14 @@
 <busconfig>
 	<policy user="root">
 		<allow own="monitoring.test.service"/>
-		<allow send_destination="monitoring.test.service"/>
+		<allow send_destination="xyz.openbmc_project.asio-test"/>
 	</policy>
         <policy user="dnsmasq">
                 <allow own="xyz.openbmc_project.asio-test"/>
                 <allow send_destination="xyz.openbmc_project.asio-test"/>
         </policy>
 	<policy context="default">
-                <deny own="monitoring.test.service"/>
-                <deny send_destination="monitoring.test.service"/>
+                <deny own="xyz.openbmc_project.asio-test"/>
+                <deny send_destination="xyz.openbmc_project.asio-test"/>
         </policy>
 </busconfig>

@@ -60,18 +60,18 @@ server()
   // current in amps
 
   auto properyCurrentName = "Current";
-  double currentDataAmps {0.0};
+  int32_t currentDataAmps {0};
   iface->register_property(properyCurrentName,
                            currentDataAmps,
                            sdbusplus::asio::PropertyPermission::readWrite);
   // voltage
   auto properyVoltageName = "Voltage";
-  double voltageData {0.0};
+  int32_t voltageData {0};
   iface->register_property(properyVoltageName,
                            voltageData,
-                           [](const int& voltage, double& propertyValue)
+                           [](const int& voltage, int& propertyValue)
                            {
-                             if (voltage < 0.0) {
+                             if (voltage < 0) {
                                return false;
                              }
                              propertyValue = voltage;
