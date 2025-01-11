@@ -20,7 +20,7 @@
 #include <sdbusplus/timer.hpp>
 
 #include "device.hpp"
-
+/*
 using variant = std::variant<int, std::string>;
 
 static int var = 15;
@@ -49,6 +49,7 @@ do_start_async_method_call_one(
                             variant(var1));
   std::cout << "exec!\n";
 }
+*/
 /*
 void
 setVoltage(std::shared_ptr<sdbusplus::asio::connection> conn,

@@ -40,7 +40,7 @@ IMAGE_INSTALL:append = " \
     asio \
     fan-fix \
     nlohmann-json \
-    clientapp \
+    webapp \
     server-dbus \
     device-simulator \
 "

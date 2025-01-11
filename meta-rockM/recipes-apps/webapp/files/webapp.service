@@ -1,0 +1,12 @@
+[Unit]
+Description=server servie
+
+[Service]
+StandardOutput=null
+StandardError=journal
+Type=oneshot
+SyslogIdentifier=server-service
+ExecStart=/usr/bin/webrouter
+
+[Install]
+WantedBy=multi-user.target

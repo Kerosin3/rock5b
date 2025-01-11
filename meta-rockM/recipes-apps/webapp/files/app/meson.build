@@ -1,4 +1,4 @@
-project('clientapp', 'cpp', 
+project('webrouter', 'cpp', 
   meson_version: '>=0.58.0',
   default_options: [
     'cpp_std=c++23',
@@ -61,4 +61,3 @@ executable(
   ],
   #native: true)
 )
-

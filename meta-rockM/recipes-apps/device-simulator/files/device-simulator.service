@@ -1,0 +1,12 @@
+[Unit]
+Description=device simulator
+
+[Service]
+StandardOutput=null
+StandardError=journal
+Type=oneshot
+SyslogIdentifier=device-simulator
+ExecStart=/usr/bin/device-simulator
+
+[Install]
+WantedBy=multi-user.target

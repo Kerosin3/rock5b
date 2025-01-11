@@ -1,24 +1,26 @@
-SUMMARY = "device simulator"
-DESCRIPTION = "to test"
+SUMMARY = "crow web application"
 PV = "1.0"
 PR = "r1"
 
+# License info
 LICENSE = "CLOSED"
 
-SERVICE_NAME =  "device-simulator.service"
-# sources
-SRC_DIR = "device-simulator"
+SRC_DIR = "app"
+SERVICE_NAME =  "webapp.service"
+APP_NAME =  "webrouter"
 
 SRC_URI += " \
         file://${SRC_DIR} \
         file://${SERVICE_NAME} \
         "
 
-APP_NAME =  "device-simulator"
 
 DEPENDS += "libgpiod"
 DEPENDS += "cli11"
 DEPENDS += "systemd"
+DEPENDS += "sdbus-c++"
+DEPENDS += "crow"
+DEPENDS += "openssl"
 DEPENDS += "sdbusplus"
 
 inherit meson pkgconfig systemd
@@ -27,15 +29,11 @@ S = "${WORKDIR}/${SRC_DIR}"
 
 BUILD_APP1 = "${WORKDIR}/build/${APP_NAME}"
 
-#add server binary
 do_install(){
 	install -d ${D}${bindir}
 	install -m 0755 ${BUILD_APP1} ${D}${bindir}
 }
 
-FILES:${PN} += " \
-               ${bindir} \
-               "
 #add systemd unit
 SYSTEMD_SERVICE:${PN} = "${SERVICE_NAME} "
 SYSTEMD_AUTO_ENABLE:${PN} = "enable"

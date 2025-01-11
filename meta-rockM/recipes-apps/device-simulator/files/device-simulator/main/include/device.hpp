@@ -7,7 +7,6 @@
 #include <deque>
 #include <iostream>
 #include <mutex>
-#include <random>
 #include <thread>
 #include <tuple>
 #include <utility>
@@ -33,68 +32,22 @@ namespace device
 using namespace std;
 
 using namespace std::string_literals;
+using namespace datamodel;
 
 constexpr const char* ServiceName = "monitoring.test.service";
 constexpr const char* ObjectPath = "/top/telemetry/watcher1";
 constexpr const char* InterfaceName = "watcher1.interface.test";
-
-class DeviceData
-{
-  using voltage_t = double;
-  using current_t = double;
-  using illimunation_t = double;
-  using winspeed_t = int;
-  winspeed_t windspeed {};
-  illimunation_t illimination {};
-  current_t current {};
-  voltage_t voltage {};
-  std::random_device rd;
-  std::mt19937 mt;
-  std::pair<double, double> currentLimits;
-  std::uniform_real_distribution<> currentDistr {currentLimits.first,
-                                                 currentLimits.second};
-  std::pair<double, double> voltageLimits;
-  std::uniform_real_distribution<> voltageDistr {voltageLimits.first,
-                                                 voltageLimits.second};
-  std::pair<double, double> windspeedLimits;
-  std::uniform_real_distribution<> windspeedDistr {windspeedLimits.first,
-                                                   windspeedLimits.second};
-  std::pair<double, double> illimLimits;
-  std::uniform_real_distribution<> illimLimitsDistr {illimLimits.first,
-                                                     illimLimits.second};
-  DeviceData(std::pair<double, double> currentLimits,
-             std::pair<double, double> voltageLimits,
-             std::pair<double, double> windspeedLimits,
-             std::pair<double, double> illimLimits)
-      : mt(rd())
-      , currentLimits(currentLimits)
-      , voltageLimits(voltageLimits)
-      , windspeedLimits(windspeedLimits)
-      , illimLimits(illimLimits)
-  {
-  }
-
-public:
-  std::tuple<current_t, voltage_t, illimunation_t, winspeed_t> getSampledata()
-  {
-    return std::make_tuple(currentDistr(mt),
-                           voltageDistr(mt),
-                           illimLimitsDistr(mt),
-                           windspeedDistr(mt));
-  }
-};
+constexpr const char* FreeDeskopPath = "org.freedesktop.DBus.Properties";
 
 class Device
 {
   std::mutex m_mtx;
   std::condition_variable m_cv;
-  std::deque<double> m_tasks;
+  std::deque<dataFormat_t> m_tasks;
   // number of workers
   static constexpr ssize_t N_WORKERS = 5;
   std::jthread m_master_thread;
   std::array<std::jthread, N_WORKERS> m_worker_thread;
-  // limits for voltage
-  std::pair<double, double> m_limits {10.0, 14.0};
   // sampling time
   static constexpr size_t SAMPLING_TIME_MS = 1000;
   // boost members
@@ -102,6 +55,10 @@ class Device
   std::shared_ptr<sdbusplus::asio::connection> conn;
   std::thread iothread;
   std::random_device rd;
+  DeviceData datax {std::make_pair(0.0, 5.0),
+                    std::make_pair(10.0, 15.0),
+                    std::make_pair(-30.0, 30.0),
+                    std::make_pair(0.0, 100.0)};
 
   void spawnMaster()
   {
@@ -115,17 +72,27 @@ class Device
     }
   }
 
-  auto getRandom();
-
   void worker();
 
   void addTask();
 
   void master();
-  void setVoltage(boost::asio::yield_context yield, double voltage);
+
+  void setVoltage(boost::asio::yield_context yield, voltage_t voltage);
+
+  void setCurrent(boost::asio::yield_context yield, current_t current);
+
+  void setIllim(boost::asio::yield_context yield, illimunation_t illim);
+
+  void setWindspeed(boost::asio::yield_context yield, winspeed_t windspped);
+
+  void setWindDir(boost::asio::yield_context yield, windirection_t current);
+
+  void setCharge(boost::asio::yield_context yield);
 
 public:
   virtual ~Device() { iothread.join(); }
+
   Device()
   {
     conn = std::make_shared<sdbusplus::asio::connection>(io);
