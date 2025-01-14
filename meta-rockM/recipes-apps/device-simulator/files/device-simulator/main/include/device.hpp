@@ -15,6 +15,9 @@
 #include <boost/asio/io_context.hpp>
 #include <boost/asio/signal_set.hpp>
 #include <boost/asio/spawn.hpp>
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/tuple.hpp>
 #include <nlohmann/json.hpp>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
@@ -38,6 +41,29 @@ constexpr const char* ServiceName = "monitoring.test.service";
 constexpr const char* ObjectPath = "/top/telemetry/watcher1";
 constexpr const char* InterfaceName = "watcher1.interface.test";
 constexpr const char* FreeDeskopPath = "org.freedesktop.DBus.Properties";
+
+struct Base64DataSamples
+{
+  dataFormat_t data;
+  Base64DataSamples() = default;
+
+  template<typename... U>
+  Base64DataSamples(U... args)
+      : data {std::make_tuple((args)...)}
+  {
+  }
+
+  Base64DataSamples(dataFormat_t&& datain)
+      : data {std::move(datain)}
+  {
+  }
+
+  template<typename Archive>
+  void serialize(Archive& archive)
+  {
+    archive(data);
+  }
+};
 
 class Device
 {
@@ -78,17 +104,16 @@ class Device
 
   void master();
 
-  void setVoltage(boost::asio::yield_context yield, voltage_t voltage);
-
-  void setCurrent(boost::asio::yield_context yield, current_t current);
-
-  void setIllim(boost::asio::yield_context yield, illimunation_t illim);
-
-  void setWindspeed(boost::asio::yield_context yield, winspeed_t windspped);
-
-  void setWindDir(boost::asio::yield_context yield, windirection_t current);
+  template<typename T>
+  void setParameter(boost::asio::yield_context yield,
+                    T param,
+                    const std::string& paramName);
 
   void setCharge(boost::asio::yield_context yield);
+
+  void setDataPack(boost::asio::yield_context yield);
+
+  void packAndSetData(boost::asio::yield_context yield);
 
 public:
   virtual ~Device() { iothread.join(); }

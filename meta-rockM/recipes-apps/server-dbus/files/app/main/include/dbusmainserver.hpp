@@ -110,6 +110,12 @@ server()
   int32_t cpuUsage {0};
   iface->register_property(
       CpuLoadName, cpuUsage, sdbusplus::asio::PropertyPermission::readWrite);
+  // Base64Data
+  auto propertyData64Name = "SamplesB64";
+  std::string samples {};
+  iface->register_property(propertyData64Name,
+                           samples,
+                           sdbusplus::asio::PropertyPermission::readWrite);
   // register methods
   iface->register_method("getTimestamp", getTimestampX);
   iface->register_method("encodebase64", encodebase64);

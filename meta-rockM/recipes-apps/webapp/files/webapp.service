@@ -1,5 +1,7 @@
 [Unit]
 Description=server servie
+StartLimitIntervalSec=500
+StartLimitBurst=5
 
 [Service]
 StandardOutput=null
@@ -7,6 +9,8 @@ StandardError=journal
 Type=oneshot
 SyslogIdentifier=server-service
 ExecStart=/usr/bin/webrouter
+Restart=on-failure
+RestartSec=2s
 
 [Install]
 WantedBy=multi-user.target

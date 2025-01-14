@@ -14,7 +14,7 @@ file1="./build/main-service"
 #arm-openbmc-linux-gnueabi-strip $file1
 
 #scp ./build/clientapp root@$IP:/usr/bin
-rsync -avziHPL -e "sshpass -p root ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $file1 root@$IP:/usr/bin/xtestapp
+rsync -avziHPL -e "sshpass -p root ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" $file1 root@$IP:/usr/bin/main-service
       if [[ $? -ne 0 ]]; then
         echo error while transferring file to bmc
         exit 1

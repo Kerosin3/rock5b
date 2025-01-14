@@ -1,8 +1,16 @@
 #pragma once
+#include <fstream>
 #include <iterator>
 #include <random>
+#include <sstream>
 #include <utility>
 #include <vector>
+
+#include <cereal/archives/binary.hpp>
+#include <cereal/types/memory.hpp>
+#include <cereal/types/unordered_map.hpp>
+
+#include "base64.hpp"
 
 namespace datamodel
 {

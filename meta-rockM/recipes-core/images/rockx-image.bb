@@ -43,6 +43,7 @@ IMAGE_INSTALL:append = " \
     webapp \
     server-dbus \
     device-simulator \
+    system-monitor \
 "
 
 inherit extrausers

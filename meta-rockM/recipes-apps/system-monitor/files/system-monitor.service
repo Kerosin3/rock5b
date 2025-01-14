@@ -1,12 +1,12 @@
 [Unit]
-Description=server servie
+Description=monitoring service
 
 [Service]
 StandardOutput=null
 StandardError=journal
 Type=oneshot
-SyslogIdentifier=server-service
-ExecStart=/usr/bin/server
+SyslogIdentifier=monitoring-service
+ExecStart=/usr/bin/system-monitor
 
 [Install]
 WantedBy=multi-user.target

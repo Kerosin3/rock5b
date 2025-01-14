@@ -7,6 +7,7 @@ using namespace datamodel;
 void
 Device::worker()
 {
+  using namespace datamodel;
   while (true) {
     std::unique_lock lock(m_mtx);
     m_cv.wait(lock, [this] { return !m_tasks.empty(); });
@@ -15,37 +16,41 @@ Device::worker()
     boost::asio::spawn(
         io,
         [this, volt](boost::asio::yield_context yield)
-        { setVoltage(yield, volt); },
+        { setParameter<voltage_t>(yield, volt, "Voltage"); },
         boost::asio::detached);
     // current
     boost::asio::spawn(
         io,
         [this, curr](boost::asio::yield_context yield)
-        { setCurrent(yield, curr); },
+        { setParameter<current_t>(yield, curr, "Current"); },
         boost::asio::detached);
     // illi
     boost::asio::spawn(
         io,
         [this, illi](boost::asio::yield_context yield)
-        { setIllim(yield, illi); },
+        { setParameter<illimunation_t>(yield, illi, "Illimunation"); },
         boost::asio::detached);
     // wind
     boost::asio::spawn(
         io,
         [this, wind](boost::asio::yield_context yield)
-        { setWindspeed(yield, wind); },
+        { setParameter<winspeed_t>(yield, wind, "WindSpeed"); },
         boost::asio::detached);
     // wind dir
     boost::asio::spawn(
         io,
         [this, wdir](boost::asio::yield_context yield)
-        { setWindDir(yield, wdir); },
+        { setParameter<windirection_t>(yield, wdir, "WindDir"); },
         boost::asio::detached);
     // charge
     boost::asio::spawn(
         io,
-        [this](boost::asio::yield_context yield)
-        { setCharge(yield); },
+        [this](boost::asio::yield_context yield) { setCharge(yield); },
+        boost::asio::detached);
+    // dataPack
+    boost::asio::spawn(
+        io,
+        [this](boost::asio::yield_context yield) { setDataPack(yield); },
         boost::asio::detached);
     m_tasks.pop_front();
     // sampling time
@@ -72,10 +77,13 @@ Device::master()
   }
 }
 
+template<typename T>
 void
-Device::setVoltage(boost::asio::yield_context yield, voltage_t voltage)
+Device::setParameter(boost::asio::yield_context yield,
+                     T param,
+                     const std::string& paramName)
 {
-  using variant = std::variant<voltage_t, std::string>;
+  using variant = std::variant<T, std::string>;
   boost::system::error_code ec;
   conn->yield_method_call<>(yield,
                             ec,
@@ -84,55 +92,10 @@ Device::setVoltage(boost::asio::yield_context yield, voltage_t voltage)
                             FreeDeskopPath,
                             "Set",
                             InterfaceName,
-                            "Voltage",
-                            variant(voltage));
+                            paramName,
+                            variant(param));
 }
 
-void
-Device::setCurrent(boost::asio::yield_context yield, current_t current)
-{
-  using variant = std::variant<current_t, std::string>;
-  boost::system::error_code ec;
-  conn->yield_method_call<>(yield,
-                            ec,
-                            ServiceName,
-                            ObjectPath,
-                            FreeDeskopPath,
-                            "Set",
-                            InterfaceName,
-                            "Current",
-                            variant(current));
-}
-void
-Device::setIllim(boost::asio::yield_context yield, illimunation_t illim)
-{
-  using variant = std::variant<illimunation_t, std::string>;
-  boost::system::error_code ec;
-  conn->yield_method_call<>(yield,
-                            ec,
-                            ServiceName,
-                            ObjectPath,
-                            FreeDeskopPath,
-                            "Set",
-                            InterfaceName,
-                            "Illimunation",
-                            variant(illim));
-}
-void
-Device::setWindspeed(boost::asio::yield_context yield, winspeed_t windspped)
-{
-  using variant = std::variant<winspeed_t, std::string>;
-  boost::system::error_code ec;
-  conn->yield_method_call<>(yield,
-                            ec,
-                            ServiceName,
-                            ObjectPath,
-                            FreeDeskopPath,
-                            "Set",
-                            InterfaceName,
-                            "WindSpeed",
-                            variant(windspped));
-}
 void
 Device::setCharge(boost::asio::yield_context yield)
 {
@@ -150,11 +113,21 @@ Device::setCharge(boost::asio::yield_context yield)
                             "Charge",
                             variant(uniform(mt)));
 }
+
 void
-Device::setWindDir(boost::asio::yield_context yield, windirection_t wdir)
+Device::setDataPack(boost::asio::yield_context yield)
 {
-  using variant = std::variant<windirection_t, std::string>;
+  using variant = std::variant<double, std::string>;
   boost::system::error_code ec;
+  Base64DataSamples dataToTransfer {datax.getSampledata()};
+  std::stringstream ss;
+  std::string encoded {};
+  {
+    cereal::BinaryOutputArchive oarchive(ss);  // Create an output archive
+
+    oarchive(dataToTransfer);
+    encoded = std::move(base64::to_base64(ss.str()));
+  }
   conn->yield_method_call<>(yield,
                             ec,
                             ServiceName,
@@ -162,8 +135,13 @@ Device::setWindDir(boost::asio::yield_context yield, windirection_t wdir)
                             FreeDeskopPath,
                             "Set",
                             InterfaceName,
-                            "WindDir",
-                            variant(wdir));
+                            "SamplesB64",
+                            variant(encoded));
+}
+
+void
+Device::packAndSetData(boost::asio::yield_context yield)
+{
 }
 void
 Device::initialize()

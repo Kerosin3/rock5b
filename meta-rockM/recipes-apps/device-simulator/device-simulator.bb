@@ -20,6 +20,7 @@ DEPENDS += "libgpiod"
 DEPENDS += "cli11"
 DEPENDS += "systemd"
 DEPENDS += "sdbusplus"
+DEPENDS += "libcereal"
 
 inherit meson pkgconfig systemd
 

@@ -1,27 +1,25 @@
-SUMMARY = "http server"
-DESCRIPTION = "to test"
+SUMMARY = "system moniting app"
+DESCRIPTION = "shows system workloa"
 PV = "1.0"
 PR = "r1"
 
 LICENSE = "CLOSED"
 
-SERVICE_NAME =  "server.service"
+SERVICE_NAME =  "system-monitor.service"
 # sources
-SRC_DIR = "server_prj"
+SRC_DIR = "system-monitor"
 
 SRC_URI += " \
         file://${SRC_DIR} \
         file://${SERVICE_NAME} \
         "
 
-APP_NAME =  "server"
+APP_NAME =  "system-monitor"
 
 DEPENDS += "libgpiod"
 DEPENDS += "cli11"
 DEPENDS += "systemd"
-DEPENDS += "sdbus-c++"
 DEPENDS += "sdbusplus"
-DEPENDS += "crow"
 
 inherit meson pkgconfig systemd
 
@@ -41,7 +39,7 @@ FILES:${PN} += " \
 
 #add systemd unit
 SYSTEMD_SERVICE:${PN} = "${SERVICE_NAME} "
-SYSTEMD_AUTO_ENABLE:${PN} = "enable"
+SYSTEMD_AUTO_ENABLE:${PN} = "disable"
 
 do_install:append() {
   install -d ${D}/${systemd_unitdir}/system

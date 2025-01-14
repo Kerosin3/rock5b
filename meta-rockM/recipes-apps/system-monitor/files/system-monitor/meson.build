@@ -1,4 +1,4 @@
-project('server', 'cpp',
+project('system-monitor', 'cpp',
   meson_version: '>=0.58.0',
   default_options: [
     'cpp_std=c++20',
