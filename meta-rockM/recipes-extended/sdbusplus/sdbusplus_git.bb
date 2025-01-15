@@ -14,6 +14,12 @@ DEPENDS += " \
 
 S = "${WORKDIR}/git"
 
+
+SRC_URI += " \
+    file://1.patch \
+"
+
+
 inherit pkgconfig meson
 inherit python3native
 

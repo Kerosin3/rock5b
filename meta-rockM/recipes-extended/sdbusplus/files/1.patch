@@ -1,0 +1,13 @@
+diff --git a/include/sdbusplus/asio/property.hpp b/include/sdbusplus/asio/property.hpp
+index 68773ae5..68aaba4a 100644
+--- a/include/sdbusplus/asio/property.hpp
++++ b/include/sdbusplus/asio/property.hpp
+@@ -43,7 +43,7 @@ inline void getProperty(
+     sdbusplus::asio::connection& bus, const std::string& service,
+     const std::string& path, const std::string& interface,
+     const std::string& propertyName,
+-    std::function<void(boost::system::error_code, PropertyType)>&& handler)
++    std::move_only_function<void(boost::system::error_code, PropertyType)>&& handler)
+ {
+     static_assert(std::is_same_v<PropertyType, std::decay_t<PropertyType>>);
+ 

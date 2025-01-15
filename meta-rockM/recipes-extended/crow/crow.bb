@@ -1,17 +1,13 @@
-SUMMARY = "Crow web framework C++"
+SUMMARY = "Simple test application"
 LICENSE = "MIT"
 LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
 
 inherit pkgconfig cmake
-
-SRC_URI = "git://github.com/CrowCpp/Crow;protocol=https;branch=v1.2"
+VERSION_TAG="1.0+5"
+SRCREV = "edf12f699ec3bf6f751cf73cb97f32919e48ca6e"
+SRC_URI = "git://github.com/CrowCpp/Crow;protocol=https;ref=${SRCREV};nobranch=1;"
 #SRCREV = "${AUTOREV}"
-SRCREV = "dc0acf78fc6586cefb8752e66b3652fa21f4e3c4"
 BB_STRICT_CHECKSUM = "0"
-
-SRC_URI += " \
-    file://0001-change-to-sync.patch \
-"
 
 S = "${WORKDIR}/git"
 

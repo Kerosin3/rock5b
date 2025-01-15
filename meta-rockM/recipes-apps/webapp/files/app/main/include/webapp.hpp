@@ -95,9 +95,10 @@ test_interface2(std::shared_ptr<sdbusplus::asio::connection> conn,
           x["test"] = value;
           res.write(x.dump());
           std::cout << "exit\n";
-          res.end();
+          // res.end();
+          return;
         }
-        res.end();
+        // res.end();
       });
   //   response["test"] = std::get<int>(testValue);
 }

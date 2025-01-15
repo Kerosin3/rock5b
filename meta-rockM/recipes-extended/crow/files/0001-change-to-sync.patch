@@ -1,15 +1,5 @@
-From 13e846e99b0ddef25c74125cc69d540b095c6636 Mon Sep 17 00:00:00 2001
-From: Alex Vd <keromvp@gmail.com>
-Date: Tue, 14 Jan 2025 20:46:26 +0300
-Subject: [PATCH 1/1] change to sync
-
-Signed-off-by: Alex Vd <keromvp@gmail.com>
----
- include/crow/http_connection.h | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
 diff --git a/include/crow/http_connection.h b/include/crow/http_connection.h
-index 64bbf07f..1ca3c854 100644
+index 64bbf07f..f6340bf6 100644
 --- a/include/crow/http_connection.h
 +++ b/include/crow/http_connection.h
 @@ -128,7 +128,7 @@ namespace crow
@@ -21,6 +11,12 @@ index 64bbf07f..1ca3c854 100644
              }
          }
  
--- 
-2.45.2
-
+@@ -440,7 +440,7 @@ namespace crow
+                 res_body_copy_.swap(res.body);
+                 buffers_.emplace_back(res_body_copy_.data(), res_body_copy_.size());
+ 
+-                do_write();
++                do_write_sync(buffers_);
+ 
+                 if (need_to_start_read_after_complete_)
+                 {
