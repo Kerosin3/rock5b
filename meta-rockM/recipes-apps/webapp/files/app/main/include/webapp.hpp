@@ -112,7 +112,9 @@ changeSettings(std::shared_ptr<sdbusplus::asio::connection> conn,
                crow::request& req)
 {
   std::optional<nlohmann::json::object_t> Data;
-  if (!readJsonPatch(req, res, "Attributes", Data)) {
+  if (!readJsonPatch(req, res, "Settings", Data)) {
+    res.code = 200;
+    res.end();
     return;
   }
   auto datax = *std::move(Data);
@@ -169,7 +171,6 @@ getSettings(std::shared_ptr<sdbusplus::asio::connection> conn,
       x[k] = v;
     }
     res.write(x.dump());
-    // res.body = "settings have been readed";
   }
   res.end();
 }

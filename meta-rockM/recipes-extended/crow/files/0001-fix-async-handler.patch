@@ -1,0 +1,26 @@
+From ca4b8bb1eb08ad41555cffd21fb8c36714643125 Mon Sep 17 00:00:00 2001
+From: Alex Vd <keromvp@gmail.com>
+Date: Fri, 17 Jan 2025 21:13:49 +0300
+Subject: [PATCH 1/1] fix async handler
+
+Signed-off-by: Alex Vd <keromvp@gmail.com>
+---
+ include/crow/http_response.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/crow/http_response.h b/include/crow/http_response.h
+index 58562a4a..9ac8e9b9 100644
+--- a/include/crow/http_response.h
++++ b/include/crow/http_response.h
+@@ -186,7 +186,7 @@ namespace crow
+                     body = "";
+                     manual_length_header = true;
+                 }
+-                if (complete_request_handler_)
++                if (auto handler = complete_request_handler_)
+                 {
+                     complete_request_handler_();
+                 }
+-- 
+2.45.2
+

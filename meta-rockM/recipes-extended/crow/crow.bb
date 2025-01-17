@@ -8,7 +8,10 @@ SRCREV = "edf12f699ec3bf6f751cf73cb97f32919e48ca6e"
 SRC_URI = "git://github.com/CrowCpp/Crow;protocol=https;ref=${SRCREV};nobranch=1;"
 #SRCREV = "${AUTOREV}"
 BB_STRICT_CHECKSUM = "0"
-
+SRC_URI += " \
+    file://0001-fix-async-handler.patch \
+    file://0002-fix-write.patch \
+    "
 S = "${WORKDIR}/git"
 
 DEPENDS += "boost "

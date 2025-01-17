@@ -1,3 +1,4 @@
+#include <cstdlib>
 #include <iostream>
 #include <variant>
 
@@ -35,80 +36,84 @@ handler(crow::request const& req, crow::response& res)
 int
 main()
 {
-  // setup connection to dbus
-  boost::asio::io_context io;
-  boost::asio::signal_set signals(io, SIGINT, SIGTERM);
-  auto conn = std::make_shared<sdbusplus::asio::connection>(io);
-  signals.async_wait([&io](const boost::system::error_code&, const int&)
-                     { io.stop(); });
-  // setup Crow
-  crow::SimpleApp app;
-  // run IO in detached thread
-  auto thread = std::thread([&io] { io.run(); });
-  thread.detach();
-  // establish routes
-  CROW_ROUTE(app, "/voltage")
-      .methods("GET"_method)(
-          [&io, &conn](crow::request& req, crow::response& res)
-          {
-            req.close_connection = true;
-            boost::asio::spawn(
-                io,
-                [conn, &res](boost::asio::yield_context yield)
-                { webapp::getParam<double>(conn, yield, res, voltageProp); },
-                boost::asio::detached);
-          });
-  CROW_ROUTE(app, "/current")
-      .methods("GET"_method)(
-          [&io, &conn](crow::request& /*req*/, crow::response& res)
-          {
-            boost::asio::spawn(
-                io,
-                [conn, &res](boost::asio::yield_context yield)
-                { webapp::getParam<double>(conn, yield, res, currentProp); },
-                boost::asio::detached);
-          });
-  CROW_ROUTE(app, "/windspeed")
-      .methods("GET"_method)(
-          [&io, &conn](crow::request& /*req*/, crow::response& res)
-          {
-            boost::asio::spawn(
-                io,
-                [conn, &res](boost::asio::yield_context yield)
-                { webapp::getParam<double>(conn, yield, res, windSpeedProp); },
-                boost::asio::detached);
-          });
-  CROW_ROUTE(app, "/winddir")
-      .methods("GET"_method)(
-          [&io, &conn](crow::request& /*req*/, crow::response& res)
-          {
-            boost::asio::spawn(
-                io,
-                [conn, &res](boost::asio::yield_context yield)
-                { webapp::getParam<short>(conn, yield, res, windDirProp); },
-                boost::asio::detached);
-          });
-  CROW_ROUTE(app, "/testx")
-      .methods("GET"_method, "PATCH"_method)(
-          [&io, &conn](crow::request& req, crow::response& res)
-          {
-            if (req.method == "GET"_method) {
+  try {
+    // setup connection to dbus
+    boost::asio::io_context io;
+    boost::asio::signal_set signals(io, SIGINT, SIGTERM);
+    auto conn = std::make_shared<sdbusplus::asio::connection>(io);
+    signals.async_wait([&io](const boost::system::error_code&, const int&)
+                       { io.stop(); });
+    // setup Crow
+    crow::SimpleApp app;
+    // run IO in detached thread
+    auto thread = std::jthread([&] { io.run(); });
+    //  establish routes
+    CROW_ROUTE(app, "/voltage")
+        .methods("GET"_method)(
+            [&io, &conn](crow::request& req, crow::response& res)
+            {
+              req.close_connection = true;
               boost::asio::spawn(
                   io,
-                  [conn, &req, &res](boost::asio::yield_context yield)
-                  { webapp::getSettings(conn, yield, res); },
+                  [conn, &res](boost::asio::yield_context yield)
+                  { webapp::getParam<double>(conn, yield, res, voltageProp); },
                   boost::asio::detached);
+            });
+    CROW_ROUTE(app, "/current")
+        .methods("GET"_method)(
+            [&io, &conn](crow::request& /*req*/, crow::response& res)
+            {
+              boost::asio::spawn(
+                  io,
+                  [conn, &res](boost::asio::yield_context yield)
+                  { webapp::getParam<double>(conn, yield, res, currentProp); },
+                  boost::asio::detached);
+            });
+    CROW_ROUTE(app, "/windspeed")
+        .methods("GET"_method)(
+            [&io, &conn](crow::request& /*req*/, crow::response& res)
+            {
+              boost::asio::spawn(
+                  io,
+                  [conn, &res](boost::asio::yield_context yield)
+                  {
+                    webapp::getParam<double>(conn, yield, res, windSpeedProp);
+                  },
+                  boost::asio::detached);
+            });
+    CROW_ROUTE(app, "/winddir")
+        .methods("GET"_method)(
+            [&io, &conn](crow::request& /*req*/, crow::response& res)
+            {
+              boost::asio::spawn(
+                  io,
+                  [conn, &res](boost::asio::yield_context yield)
+                  { webapp::getParam<short>(conn, yield, res, windDirProp); },
+                  boost::asio::detached);
+            });
+    CROW_ROUTE(app, "/settings")
+        .methods("GET"_method, "PATCH"_method)(
+            [&io, &conn](crow::request& req, crow::response& res)
+            {
+              if (req.method == "GET"_method) {
+                boost::asio::spawn(
+                    io,
+                    [conn, &req, &res](boost::asio::yield_context yield)
+                    { webapp::getSettings(conn, yield, res); },
+                    boost::asio::detached);
 
-            } else {
-              boost::asio::spawn(
-                  io,
-                  [conn, &req, &res](boost::asio::yield_context yield)
-                  { webapp::changeSettings(conn, yield, res, req); },
-                  boost::asio::detached);
-            }
-          });
-  // CROW_ROUTE(app, "/testx2").methods("PATCH"_method)(&handler);
-  // app.port(18080).loglevel(crow::LogLevel::DEBUG).run();
-  app.port(18080).multithreaded().run_async();
-  // app.port(18080).loglevel(crow::LogLevel::DEBUG).multithreaded().run();
+              } else {
+                boost::asio::spawn(
+                    io,
+                    [conn, &req, &res](boost::asio::yield_context yield)
+                    { webapp::changeSettings(conn, yield, res, req); },
+                    boost::asio::detached);
+              }
+            });
+    auto async_application = app.port(18080).multithreaded().run_async();
+  } catch (...) {
+    std::cerr << "Error: while running the programm " << std::endl;
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }
