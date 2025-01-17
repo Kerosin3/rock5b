@@ -1,4 +1,4 @@
 sources += files(
   'main.cpp',
-  'test1.cpp'
+  'cpu_monitor.cpp'
 )
