@@ -1,31 +1,32 @@
 #pragma once
 
 #include <ctime>
+#include <map>
 #include <string>
 #include <variant>
 
-#include <boost/asio/detached.hpp>
-#include <boost/asio/io_context.hpp>
-#include <boost/asio/signal_set.hpp>
-#include <boost/asio/spawn.hpp>
-#include <boost/beast/websocket.hpp>
 #include <nlohmann/json.hpp>
 #include <sdbusplus/asio/connection.hpp>
 #include <sdbusplus/asio/object_server.hpp>
 #include <sdbusplus/asio/property.hpp>
-#include <sdbusplus/asio/sd_event.hpp>
 #include <sdbusplus/bus.hpp>
-#include <sdbusplus/exception.hpp>
-#include <sdbusplus/server.hpp>
-#include <sdbusplus/timer.hpp>
 
 #include "crow.h"
+#include "processPatch.hpp"
 
 namespace webapp
 {
+// monitor bus
 constexpr const char* ServiceName = "monitoring.test.service";
 constexpr const char* ObjectPath = "/top/telemetry/watcher1";
 constexpr const char* InterfaceName = "watcher1.interface.test";
+
+// setup bus
+constexpr const char* FreeDeskopPath = "org.freedesktop.DBus.Properties";
+constexpr const char* ServiceSetup = "setup.test.service";
+constexpr const char* ObjectSetup = "/top/setup/device";
+constexpr const char* InterfaceSetup = "device.interface.test";
+
 using variant = std::variant<int, std::string>;
 
 template<typename T>
@@ -41,7 +42,8 @@ getParam(std::shared_ptr<sdbusplus::asio::connection> conn,
       yield, ec, ServiceName, ObjectPath, InterfaceName, "getTimestamp");
   if (ec) {
     CROW_LOG_ERROR << "error getting timestamp";
-    crow::response(400);
+    res.code = 500;
+    return;
   }
   // get property
   sdbusplus::asio::getProperty<T>(
@@ -62,11 +64,11 @@ getParam(std::shared_ptr<sdbusplus::asio::connection> conn,
           x[pName] = value;
           x["Timestamp"] = timestamp;
           res.write(x.dump());
+          res.code = 200;
           res.end();
           return;
         }
-        CROW_LOG_ERROR << "connection is already dead";
-        crow::response(400);
+        res.code = 500;
         res.end();
       });
 }
@@ -101,6 +103,75 @@ test_interface2(std::shared_ptr<sdbusplus::asio::connection> conn,
         // res.end();
       });
   //   response["test"] = std::get<int>(testValue);
+}
+
+inline void
+changeSettings(std::shared_ptr<sdbusplus::asio::connection> conn,
+               boost::asio::yield_context yield,
+               crow::response& res,
+               crow::request& req)
+{
+  std::optional<nlohmann::json::object_t> Data;
+  if (!readJsonPatch(req, res, "Attributes", Data)) {
+    return;
+  }
+  auto datax = *std::move(Data);
+  std::map<std::string, int32_t> dataMap {};
+  for (const auto& [settingname, settingvalue] : datax) {
+    dataMap[settingname] = settingvalue;
+  }
+  using variant = std::variant<std::map<std::string, int32_t>, std::string>;
+
+  boost::system::error_code ec;
+  conn->yield_method_call<>(yield,
+                            ec,
+                            ServiceSetup,
+                            ObjectSetup,
+                            FreeDeskopPath,
+                            "Set",
+                            InterfaceSetup,
+                            "Settings",
+                            variant(dataMap));
+
+  if (ec) {
+    res.code = 500;
+  } else {
+    res.code = 200;
+    res.body = "settings have been changed!";
+  }
+  res.end();
+}
+
+inline void
+getSettings(std::shared_ptr<sdbusplus::asio::connection> conn,
+            boost::asio::yield_context yield,
+            crow::response& res)
+{
+  boost::system::error_code ec;
+  using variant = std::variant<std::map<std::string, int32_t>, std::string>;
+  variant settingsData;
+  settingsData = conn->yield_method_call<variant>(yield,
+                                                  ec,
+                                                  ServiceSetup,
+                                                  ObjectSetup,
+                                                  FreeDeskopPath,
+                                                  "Get",
+                                                  InterfaceSetup,
+                                                  "Settings");
+  if (ec) {
+    res.code = 500;
+  } else if (auto* settings =
+                 std::get_if<std::map<std::string, int32_t>>(&settingsData))
+  {
+    res.code = 200;
+    crow::json::wvalue x;
+    for (auto& [k, v] : *settings) {
+      x[k] = v;
+    }
+    res.write(x.dump());
+    // res.body = "settings have been readed";
+  }
+  res.end();
 }
 
 }  // namespace webapp

@@ -1,0 +1,12 @@
+[Unit]
+Description=setup-service
+
+[Service]
+StandardOutput=null
+StandardError=journal
+Type=oneshot
+SyslogIdentifier=monitor-service
+ExecStart=/usr/bin/setups
+
+[Install]
+WantedBy=multi-user.target

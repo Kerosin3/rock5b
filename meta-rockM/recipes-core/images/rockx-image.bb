@@ -42,6 +42,7 @@ IMAGE_INSTALL:append = " \
     nlohmann-json \
     webapp \
     server-dbus \
+    setups-dbus \
     device-simulator \
     system-monitor \
 "

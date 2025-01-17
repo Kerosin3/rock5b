@@ -1,8 +1,10 @@
 #include <iostream>
+#include <variant>
 
 #include <boost/asio/io_context.hpp>
 #include <sdbusplus/asio/connection.hpp>
 
+#include "processPatch.hpp"
 #include "routes.hpp"
 #include "webapp.hpp"
 
@@ -12,80 +14,100 @@ constexpr const char* windSpeedProp = "WindSpeed";
 constexpr const char* windDirProp = "WindDir";
 constexpr const char* IllimProp = "Illimunation";
 
+/*
+void
+handler(crow::request const& req, crow::response& res)
+{
+  std::optional<nlohmann::json::object_t> Data;
+  if (!readJsonPatch(req, res, "Attributes", Data)) {
+    return;
+  }
+  auto datax = *std::move(Data);
+  for (const auto& [settingname, settingvalue] : datax) {
+    std::cout << "vlue is" << settingvalue << "\n";
+  }
+  crow::json::wvalue x;
+  x["done"] = 1;
+  res.write(x.dump());
+  res.end();
+}
+*/
 int
 main()
 {
-  using namespace webapp;
   // setup connection to dbus
   boost::asio::io_context io;
+  boost::asio::signal_set signals(io, SIGINT, SIGTERM);
   auto conn = std::make_shared<sdbusplus::asio::connection>(io);
-
+  signals.async_wait([&io](const boost::system::error_code&, const int&)
+                     { io.stop(); });
+  // setup Crow
   crow::SimpleApp app;
+  // run IO in detached thread
   auto thread = std::thread([&io] { io.run(); });
   thread.detach();
-
+  // establish routes
   CROW_ROUTE(app, "/voltage")
-  (
-      [&io, &conn](crow::request& /*req*/, crow::response& res)
-      {
-        boost::asio::spawn(
-            io,
-            [conn,
-             res = std::move(res)](boost::asio::yield_context yield) mutable
-            {
-              boost::system::error_code ec;
-              // get timestamp
-              auto paramName = "Voltage";
-              std::string date =
-                  conn->yield_method_call<std::string>(yield,
-                                                       ec,
-                                                       ServiceName,
-                                                       ObjectPath,
-                                                       InterfaceName,
-                                                       "getTimestamp");
-              if (ec) {
-                CROW_LOG_ERROR << "error getting timestamp";
-                crow::response(400);
-              }
-              // get property
-              sdbusplus::asio::getProperty<double>(
-                  *conn,
-                  ServiceName,
-                  ObjectPath,
-                  InterfaceName,
-                  paramName,
-                  [&res,
-                   pName = std::move(paramName),
-                   timestamp = std::move(date)](boost::system::error_code ecode,
-                                                double value) mutable
-                  {
-                    if (ecode) {
-                      CROW_LOG_ERROR << "error getting property: " << pName;
-                      crow::response(400);
-                    }
-                    //if (res.is_alive()) {
-                      crow::json::wvalue x;
-                      x[pName] = value;
-                      x["Timestamp"] = timestamp;
-                      res.write(x.dump());
-                      res.end();
-                      return;
-                    //}
-                    //CROW_LOG_ERROR << "connection is already dead";
-                    //crow::response(400);
-                    //res.end();
-                  });
-            },
-            boost::asio::detached);
-      });
-  CROW_ROUTE(app, "/json")(
-      []
-      {
-        crow::json::wvalue x({{"message", "Hello, World!"}});
-        x["message2"] = "Hello, World.. Again!";
-        return x;
-      });
+      .methods("GET"_method)(
+          [&io, &conn](crow::request& req, crow::response& res)
+          {
+            req.close_connection = true;
+            boost::asio::spawn(
+                io,
+                [conn, &res](boost::asio::yield_context yield)
+                { webapp::getParam<double>(conn, yield, res, voltageProp); },
+                boost::asio::detached);
+          });
+  CROW_ROUTE(app, "/current")
+      .methods("GET"_method)(
+          [&io, &conn](crow::request& /*req*/, crow::response& res)
+          {
+            boost::asio::spawn(
+                io,
+                [conn, &res](boost::asio::yield_context yield)
+                { webapp::getParam<double>(conn, yield, res, currentProp); },
+                boost::asio::detached);
+          });
+  CROW_ROUTE(app, "/windspeed")
+      .methods("GET"_method)(
+          [&io, &conn](crow::request& /*req*/, crow::response& res)
+          {
+            boost::asio::spawn(
+                io,
+                [conn, &res](boost::asio::yield_context yield)
+                { webapp::getParam<double>(conn, yield, res, windSpeedProp); },
+                boost::asio::detached);
+          });
+  CROW_ROUTE(app, "/winddir")
+      .methods("GET"_method)(
+          [&io, &conn](crow::request& /*req*/, crow::response& res)
+          {
+            boost::asio::spawn(
+                io,
+                [conn, &res](boost::asio::yield_context yield)
+                { webapp::getParam<short>(conn, yield, res, windDirProp); },
+                boost::asio::detached);
+          });
+  CROW_ROUTE(app, "/testx")
+      .methods("GET"_method, "PATCH"_method)(
+          [&io, &conn](crow::request& req, crow::response& res)
+          {
+            if (req.method == "GET"_method) {
+              boost::asio::spawn(
+                  io,
+                  [conn, &req, &res](boost::asio::yield_context yield)
+                  { webapp::getSettings(conn, yield, res); },
+                  boost::asio::detached);
 
+            } else {
+              boost::asio::spawn(
+                  io,
+                  [conn, &req, &res](boost::asio::yield_context yield)
+                  { webapp::changeSettings(conn, yield, res, req); },
+                  boost::asio::detached);
+            }
+          });
+  // CROW_ROUTE(app, "/testx2").methods("PATCH"_method)(&handler);
   // app.port(18080).loglevel(crow::LogLevel::DEBUG).run();
   app.port(18080).multithreaded().run_async();
   // app.port(18080).loglevel(crow::LogLevel::DEBUG).multithreaded().run();
