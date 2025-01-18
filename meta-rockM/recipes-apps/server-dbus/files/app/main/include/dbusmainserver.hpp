@@ -86,13 +86,7 @@ server()
   iface->register_property(properyIllimunationName,
                            currentIllim,
                            sdbusplus::asio::PropertyPermission::readWrite);
-  // Uptime
-  auto properyUptimeName = "Uptime";
-  int32_t uptimeMin {0};
-  iface->register_property(properyUptimeName,
-                           uptimeMin,
-                           sdbusplus::asio::PropertyPermission::readWrite);
-  // Charged percentage
+    // Charged percentage
   auto propertyChargedName = "Charge";
   double charged {0};
   iface->register_property(propertyChargedName,
@@ -106,10 +100,21 @@ server()
                              return false;
                            });
   // cpuload
-  auto CpuLoadName = "cpuUsage";
+  auto CpuLoadName = "CpuUsage";
   int32_t cpuUsage {0};
   iface->register_property(
       CpuLoadName, cpuUsage, sdbusplus::asio::PropertyPermission::readWrite);
+  // temp SoC
+  auto CpuTempName = "SocTemp";
+  double cputemp {0};
+  iface->register_property(
+      CpuTempName, cputemp, sdbusplus::asio::PropertyPermission::readWrite);
+  // Uptime
+  auto properyUptimeName = "Uptime";
+  int32_t uptimeMin {0};
+  iface->register_property(properyUptimeName,
+                           uptimeMin,
+                           sdbusplus::asio::PropertyPermission::readWrite);
   // Base64Data
   auto propertyData64Name = "SamplesB64";
   std::string samples {};
