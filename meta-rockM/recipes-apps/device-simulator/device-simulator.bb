@@ -1,5 +1,5 @@
-SUMMARY = "device simulator"
-DESCRIPTION = "to test"
+SUMMARY = "device simulator application and service"
+DESCRIPTION = "device simulator example"
 PV = "1.0"
 PR = "r1"
 

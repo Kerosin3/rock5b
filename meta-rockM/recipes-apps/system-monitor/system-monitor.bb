@@ -1,5 +1,5 @@
-SUMMARY = "system moniting app"
-DESCRIPTION = "shows system workloa"
+SUMMARY = "system moniting application"
+DESCRIPTION = "shows system workload and temp"
 PV = "1.0"
 PR = "r1"
 

@@ -1,5 +1,5 @@
-SUMMARY = "test project"
-DESCRIPTION = "to test"
+SUMMARY = "dbus setup application"
+DESCRIPTION = "service that expose setup to dbus"
 PV = "1.0"
 PR = "r1"
 
