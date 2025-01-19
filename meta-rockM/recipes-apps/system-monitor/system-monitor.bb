@@ -39,7 +39,7 @@ FILES:${PN} += " \
 
 #add systemd unit
 SYSTEMD_SERVICE:${PN} = "${SERVICE_NAME} "
-SYSTEMD_AUTO_ENABLE:${PN} = "disable"
+SYSTEMD_AUTO_ENABLE:${PN} = "enable"
 
 do_install:append() {
   install -d ${D}/${systemd_unitdir}/system

@@ -3,12 +3,19 @@ project('webrouter', 'cpp',
   default_options: [
     'cpp_std=c++23',
     'build.cpp_std=c++23',
+    'strip=true',
+    'buildtype=custom',
     'warning_level=3',
     'b_ndebug=if-release',
     'force_fallback_for=wlroots,libliftoff,vkroots',
   ],
   version : '1.0.0',
   license : 'MIT')
+
+# optimize better
+if get_option('buildtype') == 'custom'
+  add_project_arguments('-Ofast', '-g3',  language : 'cpp')
+endif
 
 cppc = meson.get_compiler('cpp')
 add_project_arguments(cppc.get_supported_arguments([

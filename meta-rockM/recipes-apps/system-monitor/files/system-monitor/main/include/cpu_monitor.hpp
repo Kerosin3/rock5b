@@ -45,3 +45,18 @@ monitorCPU()
     previous_total_time = total_time;
   }
 }
+
+inline void
+getCPUload(double& data)
+{
+  size_t previous_idle_time = 0, previous_total_time = 0;
+  for (size_t idle_time, total_time; get_cpu_times(idle_time, total_time);
+       sleep(1))
+  {
+    const float idle_time_delta = idle_time - previous_idle_time;
+    const float total_time_delta = total_time - previous_total_time;
+    data = 100.0 * (1.0 - idle_time_delta / total_time_delta);
+    previous_idle_time = idle_time;
+    previous_total_time = total_time;
+  }
+}

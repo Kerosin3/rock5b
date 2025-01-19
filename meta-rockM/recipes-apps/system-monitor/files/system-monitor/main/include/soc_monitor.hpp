@@ -26,6 +26,13 @@ readTemp(const std::string& path)
   return val;
 }
 
+double
+getSocTemp(const std::string& path)
+{
+  auto temp = static_cast<float>(readTemp(path));
+  return (temp / 1000.0);
+}
+
 void
 runSocMonitor(const std::string& path)
 {

@@ -101,7 +101,7 @@ server()
                            });
   // cpuload
   auto CpuLoadName = "CpuUsage";
-  int32_t cpuUsage {0};
+  double cpuUsage {0};
   iface->register_property(
       CpuLoadName, cpuUsage, sdbusplus::asio::PropertyPermission::readWrite);
   // temp SoC
@@ -111,7 +111,7 @@ server()
       CpuTempName, cputemp, sdbusplus::asio::PropertyPermission::readWrite);
   // Uptime
   auto properyUptimeName = "Uptime";
-  int32_t uptimeMin {0};
+  int64_t uptimeMin {0};
   iface->register_property(properyUptimeName,
                            uptimeMin,
                            sdbusplus::asio::PropertyPermission::readWrite);

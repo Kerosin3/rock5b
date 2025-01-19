@@ -35,14 +35,22 @@ incdir = include_directories('main/include')
 # create sources env var
 sources = []
 # add sources from src dir
+boost_dep = dependency('boost',  required : true)
+sdbusplus_dep = dependency('sdbusplus', required : true)
 subdir('main/src')
-#cpphttp_dep = dependency('cpp-httplib',required: true)
 #############################################################
 executable(
   meson.project_name(),
   sources,
   include_directories : incdir,
-  dependencies : [],
+  dependencies : [sdbusplus_dep,
+  dependency(
+            'boost',
+            modules: ['coroutine', 'context'],
+            disabler: true,
+            required: false,
+            )
+  ],
   #native: true)
   )
 
