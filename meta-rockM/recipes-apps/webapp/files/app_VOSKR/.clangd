@@ -1,0 +1,5 @@
+CompileFlags:
+  #Add:
+    # - "-I=[folder]"         # old answer
+    "-I=[opt/exp/radxa/SDK/sysroots/cortexa76-cortexa55-crypto-poky-linux/usr/include]"   # e.g `-I/usr/include/SDL2`  suggested from @Palmkeep
+  #Remove: [-mcpu=*]

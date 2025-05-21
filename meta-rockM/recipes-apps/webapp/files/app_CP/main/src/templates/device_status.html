@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Device Status</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        h1 {
+            color: #333;
+            margin-top: 20px;
+            font-size: 38px; /* Увеличили размер шрифта на 2 пункта */
+            margin-bottom: 10px;
+        }
+        .time {
+            font-size: 18px; /* Увеличили на 2 пункта */
+            color: #555;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 70%;
+            margin-top: 20px;
+            border-collapse: collapse;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            table-layout: fixed;
+        }
+        th, td {
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px; /* Увеличен размер шрифта для значений */
+        }
+        th {
+            background-color: #f2f2f2;
+            font-weight: normal;
+            width: 40%;
+        }
+        td {
+            background-color: #fafafa;
+            width: 60%;
+        }
+        tr:hover td {
+            background-color: #f1f1f1;
+        }
+        #refreshBtn {
+            margin-top: 20px;
+            padding: 8px 15px;
+            font-size: 16px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #refreshBtn:hover {
+            background-color: #45a049;
+        }
+        #refreshBtn.disabled {
+            background-color: #d3d3d3;
+            cursor: not-allowed;
+        }
+        #refreshing {
+            margin-top: 20px;
+            font-size: 20px; /* Увеличен размер шрифта для индикатора */
+            color: #4CAF50;
+            display: none;
+        }
+        .samples-container {
+            width: 70%;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            font-size: 16px;
+        }
+
+        .inactive {
+            color: #d3d3d3;
+            background-color: #f0f0f0;
+        }
+    </style>
+    <script>
+        function fetchData() {
+            document.getElementById('refreshing').style.display = 'block';
+            var refreshBtn = document.getElementById('refreshBtn');
+            refreshBtn.classList.add('disabled'); // Делаем кнопку серой
+
+            // Делаем все ячейки неактивными
+            const tableCells = document.querySelectorAll('table td');
+            tableCells.forEach(cell => {
+                cell.classList.add('inactive');  // Добавляем класс для серых ячеек
+            });
+
+            fetch('/data')
+            .then(response => response.json())
+            .then(data => {
+                function formatNumber(num) {
+                    return num.toFixed(3);
+                }
+
+                document.getElementById('current').innerText = formatNumber(data['CurrentData'][0]['Current']) || 'N/A';
+                document.getElementById('voltage').innerText = formatNumber(data['CurrentData'][1]['Voltage']) || 'N/A';
+                document.getElementById('winddir').innerText = formatNumber(data['CurrentData'][2]['WindDir']) || 'N/A';
+                document.getElementById('windspeed').innerText = formatNumber(data['CurrentData'][3]['WindSpeed']) || 'N/A';
+                document.getElementById('illumination').innerText = formatNumber(data['CurrentData'][4]['Illimunation']) || 'N/A';
+                document.getElementById('charge').innerText = formatNumber(data['CurrentData'][5]['Charge']) || 'N/A';
+                document.getElementById('cpuusage').innerText = formatNumber(data['CurrentData'][6]['CpuUsage']) || 'N/A';
+                document.getElementById('soctemp').innerText = formatNumber(data['CurrentData'][7]['SocTemp']) || 'N/A';
+                document.getElementById('uptime').innerText = formatNumber(data['CurrentData'][8]['Uptime']) || 'N/A';
+                document.getElementById('samples').innerText = data['CurrentData'][9]['SamplesB64'] || 'N/A';
+                document.getElementById('time').innerText = data['Time'] || 'N/A';
+
+                document.getElementById('refreshing').style.display = 'none';  // Скрываем индикатор обновления
+                refreshBtn.classList.remove('disabled'); // Включаем кнопку обратно
+
+                // Убираем серый фон с ячеек после обновления
+                tableCells.forEach(cell => {
+                    cell.classList.remove('inactive');
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching data:', error);
+                document.getElementById('refreshing').style.display = 'none';  // Скрываем индикатор обновления при ошибке
+                refreshBtn.classList.remove('disabled'); // Включаем кнопку обратно при ошибке
+            });
+        }
+
+        window.onload = fetchData;
+
+        function refreshData() {
+            fetchData();
+        }
+    </script>
+</head>
+<body>
+    <h1>Device Status</h1>
+    <div class="time" id="time">Loading time...</div>
+    <button id="refreshBtn" onclick="refreshData()">Refresh</button>
+    <div id="refreshing">Refreshing...</div>  <!-- Индикатор обновления -->
+    
+    <!-- Таблица с фиксированными значениями -->
+    <table border="1">
+        <tr>
+            <th>Current</th>
+            <td id="current">Loading...</td>
+        </tr>
+        <tr>
+            <th>Voltage</th>
+            <td id="voltage">Loading...</td>
+        </tr>
+        <tr>
+            <th>Wind Direction</th>
+            <td id="winddir">Loading...</td>
+        </tr>
+        <tr>
+            <th>Wind Speed</th>
+            <td id="windspeed">Loading...</td>
+        </tr>
+        <tr>
+            <th>Illumination</th>
+            <td id="illumination">Loading...</td>
+        </tr>
+        <tr>
+            <th>Charge</th>
+            <td id="charge">Loading...</td>
+        </tr>
+        <tr>
+            <th>CPU Usage</th>
+            <td id="cpuusage">Loading...</td>
+        </tr>
+        <tr>
+            <th>SoC Temp</th>
+            <td id="soctemp">Loading...</td>
+        </tr>
+        <tr>
+            <th>Uptime</th>
+            <td id="uptime">Loading...</td>
+        </tr>
+    </table>
+
+    <!-- Вынесенный Samples -->
+    <div class="samples-container">
+        <h3>Samples (Base64)</h3>
+        <div id="samples">Loading...</div>
+    </div>
+
+</body>
+</html>

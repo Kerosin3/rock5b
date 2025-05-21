@@ -1,0 +1,32 @@
+Checks: >
+  bugprone-*,
+  cppcoreguidelines-*,
+  cert-*,
+  linuxkernel-*,
+  clang-analyzer*,
+  modernize-*,
+  performance-*,
+  portability-*,
+  readability-*,
+  google*,-google-runtime-references,
+  -cert-err58-cpp,
+  -clang-diagnostic-empty-translation-unit,
+  -readability-braces-around-statements,
+  -readability-implicit-bool-conversion,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+
+WarningsAsErrors: >
+  bugprone-*,
+  modernize-*,
+  clang-*,
+  readability-*,
+  performance-*,
+
+HeaderFilterRegex: .*
+
+CheckOptions:
+      - key:     readability-implicit-bool-conversion.AllowIntegerConditions
+        value:   '1'
+
+FormatStyle: file

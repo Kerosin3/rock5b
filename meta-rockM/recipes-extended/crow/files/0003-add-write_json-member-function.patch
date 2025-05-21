@@ -1,0 +1,41 @@
+From 884ce2877afdfc2c4617099ee810e03080bef8e6 Mon Sep 17 00:00:00 2001
+From: Alex Vd <keromvp@gmail.com>
+Date: Sun, 16 Feb 2025 12:28:28 +0300
+Subject: [PATCH 1/1] add write_json member function
+
+Signed-off-by: Alex Vd <keromvp@gmail.com>
+---
+ include/crow/http_response.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
+
+diff --git a/include/crow/http_response.h b/include/crow/http_response.h
+index 9ac8e9b9..dd776597 100644
+--- a/include/crow/http_response.h
++++ b/include/crow/http_response.h
+@@ -12,6 +12,7 @@
+ #include "crow/logging.h"
+ #include "crow/mime_types.h"
+ #include "crow/returnable.h"
++#include "json.h"
+ 
+ 
+ namespace crow
+@@ -265,6 +266,15 @@ namespace crow
+                 this->end();
+             }
+         }
++        void sendJSON(const nlohmann::json& data)
++        {
++            std::string response = data.dump();
++
++            add_header("Access-Control-Allow-Origin", "*");
++            add_header("Content-Type", "text/html");
++            write(response);
++            end();
++        }
+ 
+     private:
+         bool completed_{};
+-- 
+2.47.2
+

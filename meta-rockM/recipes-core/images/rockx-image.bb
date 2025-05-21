@@ -32,6 +32,8 @@ IMAGE_INSTALL:append = " \
     mingetty \
     git \
     sdbusplus \
+    boost \
+    asio \
     vim \
     python3-flask \
     libgpiod \
@@ -39,13 +41,19 @@ IMAGE_INSTALL:append = " \
     libcereal \
     asio \
     fan-fix \
+    valgrind \
     nlohmann-json \
+    yaml-cpp \
     webapp \
     server-dbus \
     setups-dbus \
     device-simulator \
     system-monitor \
+    setting-manager \
 "
+#not working
+#PREFERRED_VERSION:boost="1.87.0"
+#PREFERRED_VERSION:asio="1.20.0"
 
 inherit extrausers
 #IMAGE_FEATURES:remove = "debug-tweaks"

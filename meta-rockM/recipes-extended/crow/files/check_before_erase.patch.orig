@@ -1,0 +1,15 @@
+diff --git a/include/crow/task_timer.h b/include/crow/task_timer.h
+index d60c47c1..1d0793af 100644
+--- a/include/crow/task_timer.h
++++ b/include/crow/task_timer.h
+@@ -37,7 +37,9 @@ namespace crow
+ 
+             void cancel(identifier_type id)
+             {
+-                tasks_.erase(id);
++				if (tasks_.contains(id)){
++                	tasks_.erase(id);
++				}
+                 CROW_LOG_DEBUG << "task_timer cancelled: " << this << ' ' << id;
+             }
+ 

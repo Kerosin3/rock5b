@@ -1,0 +1,16 @@
+diff --git a/include/crow/http_server.h b/include/crow/http_server.h
+index 9cbedf0b..0b68ff7a 100644
+--- a/include/crow/http_server.h
++++ b/include/crow/http_server.h
+@@ -110,6 +110,11 @@ namespace crow
+                         {
+                             try
+                             {
++                                if (!io_service_pool_[i])
++                                {
++                                    std::cerr << "Error: io_service_pool_[" << i << "] is not initialized!" << std::endl;
++                                    continue;
++                                }
+                                 if (io_service_pool_[i]->run() == 0)
+                                 {
+                                     // when io_service.run returns 0, there are no more works to do.

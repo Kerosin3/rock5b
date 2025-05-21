@@ -1,0 +1,30 @@
+SUMMARY = "Crow web framework C++"
+LICENSE = "MIT"
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=0835ade698e0bcf8506ecda2f7b4f302"
+
+inherit pkgconfig cmake
+
+SRC_URI = "git://github.com/CrowCpp/Crow;protocol=https;branch=master"
+#SRCREV = "${AUTOREV}"
+SRCREV = "7e662999a51c57145c63e0895ea636e709c9d935"
+BB_STRICT_CHECKSUM = "0"
+
+SRC_URI += " \
+    file://master_write_json.patch \
+"
+
+S = "${WORKDIR}/git"
+
+DEPENDS += "boost "
+DEPENDS += "asio "
+
+EXTRA_OECMAKE += "-DCROW_INSTALL=ON"
+EXTRA_OECMAKE += "-DCROW_ENABLE_SSL=TRUE"
+EXTRA_OECMAKE += "-DCROW_BUILD_TESTS=FALSE"
+EXTRA_OECMAKE += "-DCROW_BUILD_EXAMPLES=FALSE"
+TARGET_CFLAGS += "-Wno-unused-result"
+TARGET_CFLAGS += "-Wno-address"
+TARGET_CFLAGS += "-Wno-type-limits"
+
+BBCLASSEXTEND += "native nativesdk"
+TOOLCHAIN_TARGET_TASK:append = " crow "

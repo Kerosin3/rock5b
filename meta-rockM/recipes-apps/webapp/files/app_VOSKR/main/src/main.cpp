@@ -17,10 +17,10 @@ std::vector<std::jthread> workers;
 constexpr const char* ServiceName = "monitoring.test.service";
 constexpr const char* ObjectPath = "/top/telemetry/watcher1";
 constexpr const char* InterfaceName = "watcher1.interface.test";
+
+// setup bus
 constexpr const char* FreeDeskopPath = "org.freedesktop.DBus.Properties";
 
-// test wrapper
-/*
 class AsyncResp
 {
 public:
@@ -39,7 +39,6 @@ public:
 
   crow::response res;
 };
-*/
 
 int
 main()
@@ -56,15 +55,17 @@ main()
 
     // setup Crow
     crow::SimpleApp app;
-    // io workers
+    // run IO in detached thread
+    // auto thread = std::jthread([&] { io.run(); });
     for (int i = 0; i < 1; i++) {
       workers.emplace_back([&io]() { io.run(); });
     }
 
-    CROW_ROUTE(app, "/testx")
+    CROW_ROUTE(app, "/testxx")
     (
         [&io, &conn](crow::request& /*req*/, crow::response& res)
         {
+          // AsyncResp test1 = AsyncResp(res);
           sdbusplus::asio::getProperty<double>(
               *conn,
               ServiceName,
@@ -94,7 +95,7 @@ main()
                 }
               });
         });
-    CROW_ROUTE(app, "/testb")
+    CROW_ROUTE(app, "/testx1")
     (
         [&io, &conn](crow::request& /*req*/, crow::response& res)
         {
@@ -107,6 +108,7 @@ main()
                   return;
                 }
                 if (auto* pval = std::get_if<double>(&value)) {
+                  // std::cout << "your value is " << *pval << "\n";
                   res.code = 200;
                   json wrapper = json::object();
                   wrapper["Voltage"] = *pval;
@@ -123,39 +125,13 @@ main()
               InterfaceName,
               "Voltage");
         });
-    CROW_ROUTE(app, "/testa")
-    (
-        [&io, &conn](crow::request& /*req*/, crow::response& res)
-        {
-          using json = nlohmann::json;
-          conn->async_method_call(
-              [&res](boost::system::error_code ec, std::variant<double> value)
-              {
-                if (ec) {
-                  std::cerr << "error with async_method_call\n";
-                  return;
-                }
-                if (auto* pval = std::get_if<double>(&value)) {
-                  crow::json::wvalue x({{"message", "Hello, World!"}});
-                  res.write(x.dump());
-                  res.end();
-                } else {
-                  res.code = 500;
-                  res.end();
-                }
-              },
-              ServiceName,
-              ObjectPath,
-              FreeDeskopPath,
-              "Get",
-              InterfaceName,
-              "Voltage");
-        });
-    CROW_ROUTE(app, "/simple")
+
+    CROW_ROUTE(app, "/testx12")
     (
         []()
         {
           crow::json::wvalue x({{"message", "Hello, World!"}});
+          x["message2"] = "Hello, World.. Again!";
           return x;
         });
 
@@ -192,7 +168,7 @@ main()
                                            std::placeholders::_1,
                                            std::placeholders::_2));
 
-    CROW_ROUTE(app, "/statuss")
+    CROW_ROUTE(app, "/status")
     (
         []()
         {
@@ -201,9 +177,10 @@ main()
           return page;
         });
 
-    app.loglevel(crow::LogLevel::Info);
-    app.port(18080).multithreaded().concurrency(8).run();
-    // auto appx = app.port(18080).concurrency(4).run_async();
+    app.port(18080).multithreaded().run();
+    // auto async_application = app.port(18080).run_async();
+    // auto async_application = app.port(18080).multithreaded().run_async();
+    //  auto async_application = app.port(18080).multithreaded().run_async();
   } catch (...) {
     std::cerr << "Error: while running the program " << std::endl;
     return EXIT_FAILURE;

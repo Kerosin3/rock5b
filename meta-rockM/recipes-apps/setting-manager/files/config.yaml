@@ -1,0 +1,12 @@
+setial_number: 1
+revision: 1.0
+coeff1: 128
+coeff2: 200
+data_comment: this is a comment
+weight_decay: 0.0005
+settings:
+  setting1: 1
+  setting2: 2
+  setting3: 3
+  setting4: 4
+  setting5: 5

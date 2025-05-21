@@ -1,37 +1,20 @@
-project('webrouter', 'cpp', 
+project('setting-manager', 'cpp', 
   meson_version: '>=0.58.0',
   default_options: [
     'cpp_std=c++23',
     'build.cpp_std=c++23',
-    'strip=false',
-    'buildtype=custom',
     'warning_level=3',
-    'b_lto_mode=default',
-    'b_lto_threads=0',
-    'b_lto=true',
     'b_ndebug=if-release',
     'force_fallback_for=wlroots,libliftoff,vkroots',
   ],
   version : '1.0.0',
   license : 'MIT')
 
-# optimize better
-if get_option('buildtype') == 'custom'
-  add_project_arguments('-Ofast', '-g3',  language : 'cpp')
-endif
- #optimize better
-#if get_option('buildtype') == 'custom'
-#  add_project_arguments('-O0', '-g', 'fsanitize=address',language : 'cpp')
-  #add_project_arguments('-O0', '-g', 'fsanitize=address','-DCROW_ENABLE_DEBUG', language : 'cpp')
-  #add_project_arguments('-O0', '-g', 'fsanitize=address', '-DCROW_USE_BOOST=ON',  language : 'cpp')
-#endif
-
 cppc = meson.get_compiler('cpp')
 add_project_arguments(cppc.get_supported_arguments([
   '-Wno-unused-parameter',
   '-Wno-missing-field-initializers',
   '-Wno-c99-designator',
-  '-Wno-unused-function',
   '-Wno-invalid-offsetof',
   '-Wno-unused-const-variable',
   '-Wno-volatile', # glm warning
@@ -53,21 +36,16 @@ sources = []
 # add sources from src dir
 subdir('main/src')
 # add boost
-
 boost_dep = dependency('boost',  required : true)
+yamlcpp = dependency('yaml-cpp',  required : true)
 sdbuspp = dependency('sdbus-c++')
 sdbusplus_dep = dependency('sdbusplus', required : true)
-nlohmann_json_dep = dependency(
-    'nlohmann_json',
-    version: '>=3.11.3',
-    include_type: 'system',
-)
 #############################################################
 executable(
   meson.project_name(),
   sources,
   include_directories : incdir,
-  dependencies : [sdbuspp,sdbusplus_dep, nlohmann_json_dep,
+  dependencies : [sdbuspp,sdbusplus_dep,yamlcpp,
   dependency(
             'boost',
             modules: ['coroutine', 'context'],
@@ -76,4 +54,5 @@ executable(
             )
   ],
   #native: true)
-)
+  )
+

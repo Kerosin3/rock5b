@@ -16,15 +16,14 @@ project('webrouter', 'cpp',
   license : 'MIT')
 
 # optimize better
-if get_option('buildtype') == 'custom'
-  add_project_arguments('-Ofast', '-g3',  language : 'cpp')
-endif
- #optimize better
 #if get_option('buildtype') == 'custom'
-#  add_project_arguments('-O0', '-g', 'fsanitize=address',language : 'cpp')
-  #add_project_arguments('-O0', '-g', 'fsanitize=address','-DCROW_ENABLE_DEBUG', language : 'cpp')
-  #add_project_arguments('-O0', '-g', 'fsanitize=address', '-DCROW_USE_BOOST=ON',  language : 'cpp')
+#  add_project_arguments('-Ofast', '-g3',  language : 'cpp')
 #endif
+ #optimize better
+if get_option('buildtype') == 'custom'
+  add_project_arguments('-O0', '-g', 'fsanitize=address',  language : 'cpp')
+endif
+
 
 cppc = meson.get_compiler('cpp')
 add_project_arguments(cppc.get_supported_arguments([

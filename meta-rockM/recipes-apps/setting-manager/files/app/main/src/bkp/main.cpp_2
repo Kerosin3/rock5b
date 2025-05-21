@@ -1,0 +1,55 @@
+#include <boost/asio.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <sdbusplus/asio/connection.hpp>
+#include <sdbusplus/asio/object_server.hpp>
+#include <sdbusplus/bus/match.hpp>
+
+#include <chrono>
+#include <iostream>
+#include <map>
+
+constexpr auto fooProperty = "Settings";
+constexpr auto service = "setup.test.service";
+constexpr auto path = "/top/setup/device";
+constexpr auto interface = "device.interface.test";
+
+boost::asio::io_context io;
+auto conn = std::make_shared<sdbusplus::asio::connection>(io);
+
+std::optional<sdbusplus::bus::match_t> match;
+
+void registerMatch() {
+  match = sdbusplus::bus::match_t(
+      *conn, sdbusplus::bus::match::rules::propertiesChanged(path, interface),
+      [](sdbusplus::message_t &message) {
+        std::string iface;
+		using variant = std::variant<std::map<std::string, int32_t>, std::string>;
+		std::map<std::string, variant> properties;
+        message.read(iface, properties);
+        auto pgoodProp = properties.find(fooProperty);
+        if (pgoodProp != properties.end()) {
+          auto pgood = std::get<std::map<std::string, int32_t>>(pgoodProp->second);
+		  for(auto& [k,v]: pgood) {
+		  	std::cout << "settingname " << k << " value: " << v << "\n";
+		  }
+        }
+      });
+}
+
+void timerHandler()
+{
+        registerMatch();
+}
+
+int main()
+{
+    sdbusplus::asio::object_server objectServer(conn);
+
+   
+    timerHandler();
+
+    io.run();
+
+    return 0;
+}

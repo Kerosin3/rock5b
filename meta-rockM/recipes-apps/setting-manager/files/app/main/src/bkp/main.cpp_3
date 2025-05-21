@@ -1,0 +1,74 @@
+#include <chrono>
+#include <filesystem>
+#include <iostream>
+#include <map>
+
+#include <boost/asio.hpp>
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/steady_timer.hpp>
+#include <sdbusplus/asio/connection.hpp>
+#include <sdbusplus/asio/object_server.hpp>
+#include <sdbusplus/bus/match.hpp>
+
+#include "settings.hpp"
+
+constexpr auto fooProperty = "Settings";
+constexpr auto service = "setup.test.service";
+constexpr auto path = "/top/setup/device";
+constexpr auto interface = "device.interface.test";
+
+constexpr auto cfgfile = "/etc/config.yaml";
+
+boost::asio::io_context io;
+auto conn = std::make_shared<sdbusplus::asio::connection>(io);
+
+std::optional<sdbusplus::bus::match_t> match;
+
+void
+registerMatch()
+{
+  match = sdbusplus::bus::match_t(
+      *conn,
+      sdbusplus::bus::match::rules::propertiesChanged(path, interface),
+      [](sdbusplus::message_t& message)
+      {
+        std::string iface;
+        using variant =
+            std::variant<std::map<std::string, int32_t>, std::string>;
+        std::map<std::string, variant> properties;
+        message.read(iface, properties);
+        auto pgoodProp = properties.find(fooProperty);
+        if (pgoodProp != properties.end()) {
+          Smanager::Config cfg1(cfgfile);
+          auto pgood =
+              std::get<std::map<std::string, int32_t>>(pgoodProp->second);
+		  // update settings
+		  cfg1.writeSettings("settings",pgood);
+          for (auto& [k, v] : pgood) {
+            std::cout << "settingname " << k << " value: " << v << "\n";
+          }
+        }
+      });
+}
+
+void
+timerHandler()
+{
+  registerMatch();
+}
+
+int
+main()
+{
+  if (!std::filesystem::exists(cfgfile)) {
+    std::cerr << "config file not exists!\n";
+    return EXIT_FAILURE;
+  }
+  sdbusplus::asio::object_server objectServer(conn);
+
+  timerHandler();
+
+  io.run();
+
+  return 0;
+}

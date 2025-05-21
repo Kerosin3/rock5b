@@ -1,0 +1,13 @@
+diff --git a/include/crow/task_timer.h b/include/crow/task_timer.h
+index 707a605c..d60c47c1 100644
+--- a/include/crow/task_timer.h
++++ b/include/crow/task_timer.h
+@@ -28,7 +28,7 @@ namespace crow
+             task_timer(boost::asio::io_service& io_service):
+               io_service_(io_service), deadline_timer_(io_service_)
+             {
+-                deadline_timer_.expires_from_now(boost::posix_time::seconds(1));
++                deadline_timer_.expires_from_now(boost::posix_time::seconds(5));
+                 deadline_timer_.async_wait(
+                   std::bind(&task_timer::tick_handler, this, std::placeholders::_1));
+             }

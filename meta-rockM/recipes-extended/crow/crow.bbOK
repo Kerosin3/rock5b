@@ -10,9 +10,8 @@ SRC_URI = "git://github.com/CrowCpp/Crow;protocol=https;ref=${SRCREV};nobranch=1
 BB_STRICT_CHECKSUM = "0"
 SRC_URI += " \
     file://0001-fix-async-handler.patch \
-    file://0001-change-to-sync.patch \
+    file://0002-fix-write.patch \
     file://0003-add-write_json-member-function.patch \
-    file://check_before_erase.patch \
     "
 S = "${WORKDIR}/git"
 
@@ -21,13 +20,12 @@ DEPENDS += "asio "
 DEPENDS += "nlohmann-json "
 
 EXTRA_OECMAKE += "-DCROW_INSTALL=ON"
-EXTRA_OECMAKE += "-DCROW_ENABLE_SSL=FALSE"
+EXTRA_OECMAKE += "-DCROW_ENABLE_SSL=TRUE"
 EXTRA_OECMAKE += "-DCROW_BUILD_TESTS=FALSE"
 EXTRA_OECMAKE += "-DCROW_BUILD_EXAMPLES=FALSE"
-EXTRA_OECMAKE += "-DCROW_USE_BOOST=ON"
-#TARGET_CFLAGS += "-Wno-unused-result"
-#TARGET_CFLAGS += "-Wno-address"
-#TARGET_CFLAGS += "-Wno-type-limits"
+TARGET_CFLAGS += "-Wno-unused-result"
+TARGET_CFLAGS += "-Wno-address"
+TARGET_CFLAGS += "-Wno-type-limits"
 
 BBCLASSEXTEND += "native nativesdk"
 TOOLCHAIN_TARGET_TASK:append = " crow "

@@ -1,0 +1,13 @@
+[Unit]
+Description=setting-manager
+
+[Service]
+StandardOutput=null
+StandardError=journal
+Type=oneshot
+SyslogIdentifier=setting-manager
+ExecStart=/usr/bin/setting-manager
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

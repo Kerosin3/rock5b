@@ -40,41 +40,64 @@ getParam(std::shared_ptr<sdbusplus::asio::connection> conn,
   using json = nlohmann::json;
   boost::system::error_code ec;
 
-  std::string timestamp = conn->yield_method_call<std::string>(
-      yield, ec, ServiceName, ObjectPath, InterfaceName, "getTimestamp");
+  try {
+    // std::string timestamp = conn->yield_method_call<std::string>(
+    // yield, ec, ServiceName, ObjectPath, InterfaceName, "getTimestamp");
+    std::string timestamp = "123456";
 
-  if (ec) {
-    CROW_LOG_ERROR << "Error getting timestamp";
-    return;
+    if (ec && res.is_alive() && !res.is_completed()) {
+      CROW_LOG_ERROR << "Error getting timestamp";
+      std::cout << "TS\n";
+      // res.code = 500;
+      // res.end();
+      return;
+    }
+    sdbusplus::asio::getProperty<T>(
+        *conn,
+        ServiceName,
+        ObjectPath,
+        InterfaceName,
+        paramName,
+        [&res,
+         paramName = std::move(paramName),
+         timestamp = std::move(timestamp)](boost::system::error_code ecode,
+                                           T value) mutable
+        {
+          if (ecode && res.is_alive() && !res.is_completed()) {
+            CROW_LOG_ERROR << "Error getting property: " << paramName;
+            std::cout << "propError\n";
+            // res.code = 400;
+            // res.end();
+            return;
+          }
+
+          if (res.is_alive() && !res.is_completed()) {
+            res.code = 200;
+            json wrapper = json::object();
+            wrapper[paramName] = value;
+            wrapper["Time"] = timestamp;
+            res.sendJSON(std::move(wrapper));
+            std::cout << "OK\n";
+            return;
+          } else if (res.is_alive() && res.is_completed()) {
+            std::cout << "here1\n";
+            // res.code = 500;
+            // res.end();
+            return;
+          } else if (!res.is_alive()) {
+            std::cout << "here2\n";
+            return;
+          } else {
+            std::cout << "here3\n";
+            //res.clear();
+            return;
+          }
+        });
+  } catch (...) {
+    std::cout << "error!\n";
+    res.code = 500;
+    res.end();
   }
-  sdbusplus::asio::getProperty<T>(
-      *conn,
-      ServiceName,
-      ObjectPath,
-      InterfaceName,
-      paramName,
-      [&res,
-       paramName = std::move(paramName),
-       timestamp = std::move(timestamp)](boost::system::error_code ecode,
-                                         T value) mutable
-      {
-        if (ecode && res.is_alive() && !res.is_completed()) {
-          CROW_LOG_ERROR << "Error getting property: " << paramName;
-          res.code = 400;
-          res.end();
-          return;
-        }
-
-        if (res.is_alive() && !res.is_completed()) {
-          res.code = 200;
-          json wrapper = json::object();
-          wrapper[paramName] = value;
-          wrapper["Time"] = timestamp;
-          res.sendJSON(std::move(wrapper));
-          return;
-        }
-        return;
-      });
 }
 
 template<typename T>
@@ -110,8 +133,8 @@ getRetData(std::shared_ptr<sdbusplus::asio::connection> conn,
       {
         if (ecode) {
           CROW_LOG_ERROR << "Error getting property: " << paramName;
-          res.code = 400;
-          res.end();
+          // res.code = 400;
+          // res.end();
           return;
         }
 
